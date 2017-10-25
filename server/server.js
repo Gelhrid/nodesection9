@@ -3,6 +3,8 @@ const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
 
+const {generateMessage} = require('./utils/message');
+
 console.log(__dirname + '/../public');
 console.log(path.join(__dirname, '..', 'public'));
 const publicPath =path.join(__dirname, '..', 'public');
@@ -32,25 +34,13 @@ io.on('connection', (socket) => {
   //   console.log('create Email', newEmailData);
   // });
 
-  socket.emit('newMessage', {
-    from: 'Admin',
-    text: 'Welcome to the chat app',
-    createdAt: new Date().getTime()
-  });
+  socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 
-  socket.broadcast.emit('newMessage', {
-    from: 'Admin',
-    text: 'New user Joined',
-    createdAt: new Date().getTime()
-  });
+  socket.broadcast.emit('newMessage', generateMessage('Admin', 'NEW user joined'));
   socket.on('createMessage', (createMessage) => {
     console.log('new createMessage', createMessage);
 
-    io.emit('newMessage', {
-      from: createMessage.from,
-      text: createMessage.text,
-      createdAt: new Date().getTime()
-    });
+    io.emit('newMessage', generateMessage(createMessage.from, createMessage.text));
     // socket.broadcast.emit('newMessage', {
     //   from: createMessage.from,
     //   text: createMessage.text,
