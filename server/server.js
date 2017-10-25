@@ -3,7 +3,7 @@ const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
 
-const {generateMessage} = require('./utils/message');
+const {generateMessage, generateLocationMessage} = require('./utils/message');
 
 console.log(__dirname + '/../public');
 console.log(path.join(__dirname, '..', 'public'));
@@ -48,6 +48,11 @@ io.on('connection', (socket) => {
     //   createdAt: new Date().getTime()
     // });
   });
+  //https://www.google.com/maps?q=
+  socket.on('createLocationMessage', (cords) => {
+    io.emit('newLocationMessage', generateLocationMessage('Admin', cords.latitude, cords.longitude));
+  });
+
   //to w tym poprzednim jest bo inaczej by nasluchiwalo pewnie na wsyztkie a tak na konkretny ten jeden
   socket.on('disconnect', (socket) => {
     console.log('client  dissconected');
