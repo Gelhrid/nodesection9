@@ -37,10 +37,11 @@ io.on('connection', (socket) => {
   socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 
   socket.broadcast.emit('newMessage', generateMessage('Admin', 'NEW user joined'));
-  socket.on('createMessage', (createMessage) => {
+  socket.on('createMessage', (createMessage, callback) => {
     console.log('new createMessage', createMessage);
 
     io.emit('newMessage', generateMessage(createMessage.from, createMessage.text));
+    callback({j:'dup2a'});
     // socket.broadcast.emit('newMessage', {
     //   from: createMessage.from,
     //   text: createMessage.text,

@@ -25,4 +25,23 @@ socket.on('connect', function() {
 
 socket.on('newMessage', function(newMessageData){
   console.log('new newMessageData', newMessageData);
+  var li = jQuery('<li></li>');
+  // li.text(newMessageData.from+':' +newMessageData.text);
+  li.text(`${newMessageData.from}: ${newMessageData.text}`);
+  jQuery('#messages').append(li);
+});
+
+// socket.emit('createMessage', {
+//   from: 'frank', text: 'Hey!'
+// }, function(g){
+//   console.log('got it!', g.j);
+// });
+
+jQuery('#message-form').on('submit', function(e){
+  e.preventDefault();
+  socket.emit('createMessage', {
+    from: 'User', text: jQuery('[name=message]').val()
+  }, function(){
+    console.log('Wiadomosc wyslana');
+  });
 });
