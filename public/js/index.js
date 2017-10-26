@@ -25,22 +25,24 @@ socket.on('connect', function() {
 
 socket.on('newMessage', function(newMessageData){
     // console.log('new newMessageData', newMessageData);
+    var formattedTime = moment(newMessageData.createdAt).format('HH:mm');
   var li = jQuery('<li></li>');
   // li.text(newMessageData.from+':' +newMessageData.text);
-  li.text(`${newMessageData.from}: ${newMessageData.text}`);
+  li.text(`${newMessageData.from} ${formattedTime}- ${newMessageData.text}`);
   jQuery('#messages').append(li);
 });
 
 // socket.emit('createMessage', {
 //   from: 'frank', text: 'Hey!'
 // }, function(g){
-//   console.log('got it!', g.j);
+//   console.log('got it!!', g.j);
 // });
 
 socket.on('newLocationMessage', function(message){
+    var formattedTime = moment(message.createdAt).format('HH:mm');
   var li = jQuery('<li></li>');
   var a = jQuery('<a target="_blank">My current location</a>');
-  li.text(`${message.from}`);
+  li.text(`${message.from} ${formattedTime} `);
   a.attr('href', message.url);
   li.append(a);
   jQuery('#messages').append(li);
