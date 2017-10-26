@@ -5,8 +5,8 @@ const socketIO = require('socket.io');
 
 const {generateMessage, generateLocationMessage} = require('./utils/message');
 
-console.log(__dirname + '/../public');
-console.log(path.join(__dirname, '..', 'public'));
+// console.log(__dirname + '/../public');
+// console.log(path.join(__dirname, '..', 'public'));
 const publicPath =path.join(__dirname, '..', 'public');
 const port = process.env.PORT || 3000;
 
@@ -41,7 +41,8 @@ io.on('connection', (socket) => {
     console.log('new createMessage', createMessage);
 
     io.emit('newMessage', generateMessage(createMessage.from, createMessage.text));
-    callback({j:'dup2a'});
+    // callback({j:'dup2a'});
+    callback();
     // socket.broadcast.emit('newMessage', {
     //   from: createMessage.from,
     //   text: createMessage.text,
@@ -49,8 +50,9 @@ io.on('connection', (socket) => {
     // });
   });
   //https://www.google.com/maps?q=
-  socket.on('createLocationMessage', (cords) => {
+  socket.on('createLocationMessage', (cords, callback) => {
     io.emit('newLocationMessage', generateLocationMessage('Admin', cords.latitude, cords.longitude));
+    callback();
   });
 
   //to w tym poprzednim jest bo inaczej by nasluchiwalo pewnie na wsyztkie a tak na konkretny ten jeden

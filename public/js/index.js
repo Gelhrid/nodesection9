@@ -24,7 +24,7 @@ socket.on('connect', function() {
 // });
 
 socket.on('newMessage', function(newMessageData){
-  // console.log('new newMessageData', newMessageData);
+    // console.log('new newMessageData', newMessageData);
   var li = jQuery('<li></li>');
   // li.text(newMessageData.from+':' +newMessageData.text);
   li.text(`${newMessageData.from}: ${newMessageData.text}`);
@@ -46,12 +46,14 @@ socket.on('newLocationMessage', function(message){
   jQuery('#messages').append(li);
 });
 
+var messageTextbox = jQuery('[name=message]');
 jQuery('#message-form').on('submit', function(e){
   e.preventDefault();
   socket.emit('createMessage', {
-    from: 'User', text: jQuery('[name=message]').val()
+    from: 'User',
+    text: messageTextbox.val()
   }, function(){
-    console.log('Wiadomosc wyslana');
+    messageTextbox.val('')
   });
 });
 
@@ -61,13 +63,16 @@ locationButton.on('click', function(){
   if(!navigator.geolocation){
     return alert('Geolocation not supported by your browser!');
   }
-
+  locationButton.attr('disabled', 'disabled').text('sendin location...');
   navigator.geolocation.getCurrentPosition(function(position){
     socket.emit('createLocationMessage',{
       latitude: position.coords.latitude,
       longitude: position.coords.longitude
+    }, function () {
+      locationButton.removeAttr('disabled').text('SEND Location');
     })
   }, function(){
+    locationButton.removeAttr('disabled').text('SEND Location');
     alert('unable to fetch location');
   });
 });
