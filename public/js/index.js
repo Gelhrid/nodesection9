@@ -1,5 +1,23 @@
 var socket = io();
 
+function scrollToBottom () {
+    //selectors
+    var messages = jQuery('#messages');
+    var newMessage = messages.children('li:last-child')
+
+    //hights
+    var clientHeight = messages.prop('clientHeight');
+    var scrollTop = messages.prop('scrollTop');
+    var scrollHeight = messages.prop('scrollHeight')
+    var newMessageHeight = newMessage.innerHeight();
+    var lastMessageHeight = newMessage.prev().innerHeight();
+
+    if(clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight){
+      messages.scrollTop(scrollHeight);
+    }
+
+}
+
 socket.on('connect', function() {
   console.log('connected to the server');
 //tutaj dodajemy to zeby sie wywolywalo tylko w tedy gdy mamy polaczenie
@@ -32,6 +50,7 @@ socket.on('newMessage', function(newMessageData){
     createdAt: formattedTime
   });
   jQuery('#messages').append(html);
+  scrollToBottom();
     // console.log('new newMessageData', newMessageData);
 
   // var li = jQuery('<li></li>');
@@ -60,6 +79,7 @@ socket.on('newLocationMessage', function(message){
   // a.attr('href', message.url);
   // li.append(a);
   jQuery('#messages').append(html);
+  scrollToBottom();
 });
 
 var messageTextbox = jQuery('[name=message]');
