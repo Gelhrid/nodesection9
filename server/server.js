@@ -3,17 +3,19 @@ const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
 
-
 const {generateMessage, generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 
 // console.log(__dirname + '/../public');
 // console.log(path.join(__dirname, '..', 'public'));
-const publicPath =path.join(__dirname, '..', 'public');
+const publicPath = path.join(__dirname, '..', 'public');
 const port = process.env.PORT || 3000;
 
 var app = express();
 var server = http.createServer(app);
 var io = socketIO(server);
+var users = new Users();
 
 app.use(express.static(publicPath));
 
@@ -35,13 +37,34 @@ io.on('connection', (socket) => {
   //   console.log('create Email', newEmailData);
   // });
 
-  socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+  socket.on('join', (params, callback) =>{
+      if(!isRealString(params.name) || !isRealString(params.room)){
+        return callback('Name and room name are required.');
+      }
+      socket.join(params.room);
+      //ta removeUser chyba bez tego daloby sie zhackowac i byc na twoj pokojach jak zmienie w url nazwe na ionny istniejacy pokoj albo cos takiego?
+      users.removeUser(socket.id);
+      users.addUser(socket.id, params.name, params.room);
+      io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+      //socket.leave(params.room) socket.leave('nazwa pokoju');
+// var socketIds = io.sockets.adapter.rooms[params.room];
+// console.log('sssssssssssssssssss', socketIds);
+      //rozne metody
+      //io.emit -> io.to('nazwa pokoju').emit
+      //socket.broadcast.emit -> socket.broadcast.to('nazwa pokoju').emit
+      //socket.emit
 
-  socket.broadcast.emit('newMessage', generateMessage('Admin', 'NEW user joined'));
+      socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+
+      socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} joined`));
+      callback();
+  });
+
   socket.on('createMessage', (createMessage, callback) => {
-    console.log('new createMessage', createMessage);
-
-    io.emit('newMessage', generateMessage(createMessage.from, createMessage.text));
+    var user = users.getUser(socket.id);
+    if(user && isRealString(createMessage.text)){
+      io.to(user.room).emit('newMessage', generateMessage(user.name, createMessage.text));
+    }
     // callback({j:'dup2a'});
     callback();
     // socket.broadcast.emit('newMessage', {
@@ -52,13 +75,20 @@ io.on('connection', (socket) => {
   });
   //https://www.google.com/maps?q=
   socket.on('createLocationMessage', (cords, callback) => {
-    io.emit('newLocationMessage', generateLocationMessage('Admin', cords.latitude, cords.longitude));
+    var user = users.getUser(socket.id);
+    if(user){
+    io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, cords.latitude, cords.longitude));
+  }
     callback();
   });
 
   //to w tym poprzednim jest bo inaczej by nasluchiwalo pewnie na wsyztkie a tak na konkretny ten jeden
-  socket.on('disconnect', (socket) => {
-    console.log('client  dissconected');
+  socket.on('disconnect', () => {
+    var user = users.removeUser(socket.id);
+    if(user){
+      io.to(user.room).emit('updateUserList', users.getUserList(user.room));
+      io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} disconeted`));
+    }
   });
 
 });
